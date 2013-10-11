@@ -73,6 +73,7 @@ namespace SSOApp.Controllers
         {
             if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
             {
+                ViewBag.FirstTimeAuthentication = true;
                 return RedirectToLocal(returnUrl);
             }
 

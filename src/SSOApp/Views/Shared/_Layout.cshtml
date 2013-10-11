@@ -1,4 +1,5 @@
 ﻿@using SSOApp.Service
+@using SSOApp.Extensions
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -24,6 +25,7 @@
                             <li>@Html.ActionLink("Home", "Index", "Home")</li>
                             <li>@Html.ActionLink("About", "About", "Home")</li>
                             <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                            <li><a href="@Html.OtherSiteUrl()">Click to the other site</a>
                         </ul>
                     </nav>
                 </div>
@@ -43,9 +45,9 @@
             </div>
         </footer>
         
-        @if (User.Identity.IsAuthenticated)
+        @if (User.Identity.IsAuthenticated && ViewBag.FirstTimeAuthentication)
         {
-            <img src="Account/SingleSignOn?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
+            <img src="@Html.OtherSiteUrl()/Account/SingleSignOn?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
         }
 
         @Scripts.Render("~/bundles/jquery")
