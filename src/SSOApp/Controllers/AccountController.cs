@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Security;
 using DotNetOpenAuth.AspNet;
 using Microsoft.Web.WebPages.OAuth;
+using SSOApp.Extensions;
 using SSOApp.Service;
 using WebMatrix.WebData;
 using SSOApp.Filters;
@@ -15,6 +16,7 @@ using SSOApp.Models;
 namespace SSOApp.Controllers
 {
     [Authorize]
+    [SSOSignOn]
     [InitializeSimpleMembership]
     public class AccountController : Controller
     {
@@ -46,19 +48,7 @@ namespace SSOApp.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
-            var cookie = Request.Cookies["sso"];
 
-            if (cookie != null)
-            {
-                var token = cookie.Value;
-                var username = SSOAuthenticationService.DecryptToken(token);
-
-                if (WebSecurity.UserExists(username))
-                {
-                    FormsAuthentication.SetAuthCookie(username, false);
-                }
-
-            }
 
             ViewBag.ReturnUrl = returnUrl;
             return View();

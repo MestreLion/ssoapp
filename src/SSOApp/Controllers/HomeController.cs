@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using SSOApp.Extensions;
 
 namespace SSOApp.Controllers
 {
+    [SSOSignOn]
     public class HomeController : Controller
     {
         public ActionResult Index()
