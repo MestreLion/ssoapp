@@ -18,6 +18,7 @@ namespace SSOApp.Controllers
     [InitializeSimpleMembership]
     public class AccountController : Controller
     {
+        [AllowAnonymous]
         public ActionResult SingleSignOn(string token)
         {
             const bool createPersistentCookie = false;
