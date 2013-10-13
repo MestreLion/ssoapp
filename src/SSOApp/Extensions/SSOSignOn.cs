@@ -23,18 +23,18 @@ namespace SSOApp.Extensions
                 if (WebSecurity.UserExists(username) && !filterContext.HttpContext.User.Identity.IsAuthenticated)
                 {
                     FormsAuthentication.SetAuthCookie(username, false);
+
+                    //expire cookie
+                    var c = new HttpCookie("sso") { Expires = DateTime.Now.AddDays(-1) };
+
+                    filterContext.HttpContext.Response.Cookies.Add(c);
                 }
-
-                //expire cookie
-                var c = new HttpCookie("sso") {Expires = DateTime.Now.AddDays(-1)};
-
-                filterContext.HttpContext.Response.Cookies.Add(c);
 
                 //reload page after setting the auth cookie
                 Uri referrer = filterContext.HttpContext.Request.UrlReferrer;
                 if (referrer == null || string.IsNullOrEmpty(referrer.AbsoluteUri))
                 {
-                    return;
+                    base.OnActionExecuting(filterContext);
                 }
                 filterContext.HttpContext.Response.Redirect(referrer.AbsoluteUri);
             }
