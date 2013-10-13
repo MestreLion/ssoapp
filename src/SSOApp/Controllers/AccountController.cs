@@ -16,8 +16,8 @@ using SSOApp.Models;
 namespace SSOApp.Controllers
 {
     [Authorize]
-    [SSOSignOn]
     [InitializeSimpleMembership]
+    [SSOSignOn]
     public class AccountController : Controller
     {
         [AllowAnonymous]
