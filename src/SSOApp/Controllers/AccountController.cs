@@ -48,8 +48,6 @@ namespace SSOApp.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
-
-
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
@@ -64,8 +62,7 @@ namespace SSOApp.Controllers
         {
             if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
             {
-                ViewBag.FirstTimeAuthentication = true;
-                ViewData.Add("sso", true);
+                TempData.Add("sso", true);
                 return RedirectToLocal(returnUrl);
             }
 

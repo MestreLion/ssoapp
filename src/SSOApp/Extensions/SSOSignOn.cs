@@ -9,11 +9,11 @@ using WebMatrix.WebData;
 
 namespace SSOApp.Extensions
 {
-    public class SSOSignOn : AuthorizeAttribute
+    public class SSOSignOn : ActionFilterAttribute, IActionFilter
     {
-        protected override bool AuthorizeCore(HttpContextBase httpContext)
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var cookie = httpContext.Request.Cookies["sso"];
+            var cookie = filterContext.HttpContext.Request.Cookies["sso"];
 
             if (cookie != null)
             {
@@ -24,8 +24,11 @@ namespace SSOApp.Extensions
                 {
                     FormsAuthentication.SetAuthCookie(username, false);
                 }
+
+                filterContext.HttpContext.Request.Cookies.Remove("sso");
             }
-            return base.AuthorizeCore(httpContext);
+
+            base.OnActionExecuting(filterContext);
         }
     }
 }

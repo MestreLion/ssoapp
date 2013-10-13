@@ -46,9 +46,11 @@
             </div>
         </footer>
         
-        @if (User.Identity.IsAuthenticated)
+        @if (User.Identity.IsAuthenticated && TempData["sso"] != null && (bool)TempData["sso"])
         {
             <img src="@Html.OtherSiteUrl()/Account/SingleSignOn?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
+            
+            TempData.Remove("sso");
         }
 
         @Scripts.Render("~/bundles/jquery")
