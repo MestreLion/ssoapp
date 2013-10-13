@@ -20,12 +20,23 @@ namespace SSOApp.Extensions
                 var token = cookie.Value;
                 var username = SSOAuthenticationService.DecryptToken(token);
 
-                if (WebSecurity.UserExists(username))
+                if (WebSecurity.UserExists(username) && !filterContext.HttpContext.User.Identity.IsAuthenticated)
                 {
                     FormsAuthentication.SetAuthCookie(username, false);
                 }
 
-                filterContext.HttpContext.Request.Cookies.Remove("sso");
+                //expire cookie
+                var c = new HttpCookie("sso") {Expires = DateTime.Now.AddDays(-1)};
+
+                filterContext.HttpContext.Response.Cookies.Add(c);
+
+                //reload page after setting the auth cookie
+                Uri referrer = filterContext.HttpContext.Request.UrlReferrer;
+                if (referrer == null || string.IsNullOrEmpty(referrer.AbsoluteUri))
+                {
+                    return;
+                }
+                filterContext.HttpContext.Response.Redirect(referrer.AbsoluteUri);
             }
 
             base.OnActionExecuting(filterContext);

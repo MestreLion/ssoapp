@@ -80,6 +80,11 @@ namespace SSOApp.Controllers
         {
             WebSecurity.Logout();
 
+            //expire cookie
+            var c = new HttpCookie("sso") { Expires = DateTime.Now.AddDays(-1) };
+
+            HttpContext.Response.Cookies.Add(c);
+
             return RedirectToAction("Index", "Home");
         }
 
