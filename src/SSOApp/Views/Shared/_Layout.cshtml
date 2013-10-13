@@ -46,7 +46,7 @@
             </div>
         </footer>
         
-        @if (User.Identity.IsAuthenticated && ViewBag.FirstTimeAuthentication != null && ViewBag.FirstTimeAuthentication)
+        @if (User.Identity.IsAuthenticated)
         {
             <img src="@Html.OtherSiteUrl()/Account/SingleSignOn?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
         }
