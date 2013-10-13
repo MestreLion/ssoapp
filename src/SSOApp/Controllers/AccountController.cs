@@ -31,15 +31,43 @@ namespace SSOApp.Controllers
 
                 if (WebSecurity.UserExists(user))
                 {
-                    int timeout = createPersistentCookie ? 43200 : 30;
-                    //var domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+                    const int timeout = createPersistentCookie ? 43200 : 30;
 
-                    var cookie = new HttpCookie("sso", token) { Expires = System.DateTime.Now.AddMinutes(timeout) };
+                    var cookie = CreateFormsAuthenticationCookie(user, timeout, createPersistentCookie);
+
+                    if (cookie == null) //if we do not support forms authentication we can fallback to the old sso method
+                    {
+                        cookie = new HttpCookie("sso", token) {Expires = System.DateTime.Now.AddMinutes(timeout)};
+                    }
+
                     HttpContext.Response.Cookies.Add(cookie);
                 }
             }
 
             return new EmptyResult();
+        }
+
+        private HttpCookie CreateFormsAuthenticationCookie(string username, int timeout, bool isPersistent)
+        {
+            string userData = string.Empty;
+
+            var ticket = new FormsAuthenticationTicket(
+              1,                                     // ticket version
+              username,                              // authenticated username
+              DateTime.Now,                          // issueDate
+              DateTime.Now.AddMinutes(timeout),           // expiryDate
+              isPersistent,                          // true to persist across browser sessions
+              userData,                              // can be used to store additional user data
+              FormsAuthentication.FormsCookiePath);  // the path for the cookie
+
+            // Encrypt the ticket using the machine key
+            string encryptedTicket = FormsAuthentication.Encrypt(ticket);
+
+            // Add the cookie to the request to save it
+            var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
+            cookie.HttpOnly = true;
+
+            return cookie;
         }
 
         //
