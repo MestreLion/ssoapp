@@ -7,6 +7,7 @@
 <script type="text/javascript">
     var socket = new easyXDM.Socket({
         onMessage: function (msg, origin) {
+            debugger;
             localStorage.clear();
             localStorage.setItem("token", msg);
         }
