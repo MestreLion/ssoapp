@@ -84,7 +84,9 @@
                     var socket = new easyXDM.Socket({
                         remote: "@Html.AuthProviderSite()/GetAuth",
                         onMessage: function (msg, origin) {
+                            debugger;
                             if (msg != null && msg != "null" && msg.length > 0) {
+                                debugger;
                                 var url = '/Account/SingleSignOn?token=' + msg;
                                 
                                 $.ajax({
