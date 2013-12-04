@@ -57,6 +57,11 @@ namespace SSOApp.Models
 
     public class LoginModel
     {
+      
+        [Display(Name = "SSO Method")]
+        [Required]
+        public bool SimpleSSOMethod { get; set; }
+
         [Required]
         [Display(Name = "User name")]
         public string UserName { get; set; }

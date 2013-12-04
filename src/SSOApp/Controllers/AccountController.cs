@@ -88,11 +88,20 @@ namespace SSOApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
-            if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
+            if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe)) //simple login
             {
-                TempData.Add("sso", true);
+                if (model.SimpleSSOMethod) //3rd party cookie SSO
+                {
+                    TempData.Add("sso", true);
+                }
+                else //html5 iframe sso
+                {
+                    TempData.Add("sso-auth", true);
+                }
+
                 return RedirectToLocal(returnUrl);
             }
+
 
             // If we got this far, something failed, redisplay form
             ModelState.AddModelError("", "The user name or password provided is incorrect.");

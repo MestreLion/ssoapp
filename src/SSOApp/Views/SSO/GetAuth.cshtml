@@ -1,0 +1,18 @@
+﻿@{
+    Layout = "";
+}
+
+@Scripts.Render("~/bundles/easyXDM")
+
+<script type="text/javascript">
+    var token = localStorage.getItem("token");
+
+    var socket = new easyXDM.Socket({
+        onMessage: function(msg, origin){
+        },
+        onReady: function () {
+        }
+    });
+
+    socket.postMessage(token);
+</script>

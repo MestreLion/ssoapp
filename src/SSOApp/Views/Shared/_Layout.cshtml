@@ -10,12 +10,19 @@
         <meta name="viewport" content="width=device-width" />
         @Styles.Render("~/Content/css")
         @Scripts.Render("~/bundles/modernizr")
+        @Scripts.Render("~/bundles/easyXDM")
+
     </head>
     <body>
         <header>
             <div class="content-wrapper">
                 <div class="float-left">
                     <p class="site-title">@Html.ActionLink("your logo here", "Index", "Home")</p>
+                    @if (Html.IsAuthProvider())
+                    {
+                        <p>AUTH PROVIDER</p>
+                        <a href="javascript:;" onClick="sessionStorage && sessionStorage.clear()">Clear Session Storage</a>
+                    }
                 </div>
                 <div class="float-right">
                     <section id="login">
@@ -45,12 +52,57 @@
                 </div>
             </div>
         </footer>
+
+        <!-- Approach 1 -->
         
         @if (User.Identity.IsAuthenticated && TempData["sso"] != null && (bool)TempData["sso"])
         {
             <img src="@Html.OtherSiteUrl()/Account/SingleSignOn?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
             
             TempData.Remove("sso");
+        }
+        else
+        { 
+            if (User.Identity.IsAuthenticated && TempData["sso-auth"] != null) //talk to the auth site via an iframe
+            {
+                TempData.Remove("sso-auth");
+            
+                <script type="text/javascript">
+                    var socket = new easyXDM.Socket({
+                        remote: "@Html.AuthProviderSite()/SaveAuth",
+                        onReady: function () {
+                        }
+                    });
+
+                    socket.postMessage("@SSOAuthenticationService.EncryptToken(User.Identity.Name)");
+                </script>
+            }
+        
+            if (!User.Identity.IsAuthenticated) 
+            {
+                <script type="text/javascript">
+                    var socket = new easyXDM.Socket({
+                        remote: "@Html.AuthProviderSite()/GetAuth",
+                        onMessage: function (msg, origin) {
+                            if (msg != null && msg.length > 0) {
+                                var url = '/Account/SingleSignOn?token=' + msg;
+                                
+                                $.ajax({
+                                    type: "GET",
+                                    url: url,
+                                    success: function () {
+                                        location.reload();
+                                    }
+                                });
+                            }
+                        },
+                        onReady: function () {
+                        }
+                    });
+
+                    socket.postMessage("Get Auth");
+                </script>
+            }
         }
 
         @Scripts.Render("~/bundles/jquery")
