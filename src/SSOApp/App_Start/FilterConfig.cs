@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using SSOApp.Infrastructure;
+using System.Web;
 using System.Web.Mvc;
 
 namespace SSOApp
@@ -7,7 +8,7 @@ namespace SSOApp
     {
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
-            //filters.Add(new HandleErrorAttribute());
+            filters.Add(new P3PHeaderAttribute());
         }
     }
 }
