@@ -73,6 +73,12 @@ namespace SSOApp.Models
 
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
+
+        //Optional auth-token we can store in between round-trips
+        public string AuthToken { get; set; }
+
+        //Optional return URL we can store in the body
+        public string ReturnUrl { get; set; }
     }
 
     public class RegisterModel
