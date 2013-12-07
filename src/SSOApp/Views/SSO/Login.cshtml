@@ -1,0 +1,48 @@
+﻿@model SSOApp.Models.LoginModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Central Authentication Server Login</title>
+</head>
+<body>
+    <div>
+        <section id="loginForm">
+            <h2>Use a local account to log in.</h2>
+            @using (Html.BeginForm(new { ReturnUrl = ViewBag.ReturnUrl }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+
+                <fieldset>
+                    @Html.HiddenFor(m => m.AuthToken)
+                    @Html.HiddenFor(m => m.ReturnUrl)
+                    <legend>Log in Form</legend>
+                    <ol>
+                        <li>
+                            @Html.LabelFor(m => m.UserName)
+                            @Html.TextBoxFor(m => m.UserName)
+                            @Html.ValidationMessageFor(m => m.UserName)
+                        </li>
+                        <li>
+                            @Html.LabelFor(m => m.Password)
+                            @Html.PasswordFor(m => m.Password)
+                            @Html.ValidationMessageFor(m => m.Password)
+                        </li>
+                    </ol>
+                    <input type="submit" value="Log in" />
+                </fieldset>
+                <p>
+                    @Html.ActionLink("Register", "Register") if you don't have an account.
+                </p>
+            }
+        </section>
+    </div>
+</body>
+</html>

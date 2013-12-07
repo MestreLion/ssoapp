@@ -12,6 +12,7 @@ using SSOApp.Service;
 using WebMatrix.WebData;
 using SSOApp.Filters;
 using SSOApp.Models;
+using System.Configuration;
 
 namespace SSOApp.Controllers
 {
@@ -21,7 +22,7 @@ namespace SSOApp.Controllers
     public class AccountController : Controller
     {
         [AllowAnonymous]
-        public ActionResult SingleSignOn(string token)
+        public void SingleSignOn(string token)
         {
             const bool createPersistentCookie = false;
 
@@ -29,22 +30,25 @@ namespace SSOApp.Controllers
             {
                 var user = SSOAuthenticationService.DecryptToken(token);
 
-                if (WebSecurity.UserExists(user))
-                {
-                    const int timeout = createPersistentCookie ? 43200 : 30;
-
-                    var cookie = CreateFormsAuthenticationCookie(user, timeout, createPersistentCookie);
-
-                    if (cookie == null) //if we do not support forms authentication we can fallback to the old sso method
-                    {
-                        cookie = new HttpCookie("sso", token) {Expires = System.DateTime.Now.AddMinutes(timeout)};
-                    }
-
-                    HttpContext.Response.Cookies.Add(cookie);
-                }
+                SignInUser(createPersistentCookie, user);
             }
+        }
 
-            return new EmptyResult();
+        private void SignInUser(bool createPersistentCookie, string user)
+        {
+            if (WebSecurity.UserExists(user))
+            {
+                int timeout = createPersistentCookie ? 43200 : 30;
+
+                var cookie = CreateFormsAuthenticationCookie(user, timeout, createPersistentCookie);
+
+                //if (cookie == null) //if we do not support forms authentication we can fallback to the old sso method
+                //{
+                //    cookie = new HttpCookie("sso", token) { Expires = System.DateTime.Now.AddMinutes(timeout) };
+                //}
+
+                HttpContext.Response.Cookies.Add(cookie);
+            }
         }
 
         private HttpCookie CreateFormsAuthenticationCookie(string username, int timeout, bool isPersistent)
@@ -70,6 +74,26 @@ namespace SSOApp.Controllers
             return cookie;
         }
 
+        [AllowAnonymous]
+        public ActionResult LoginWithCA(string returnUrl)
+        {
+            if (WebSecurity.IsAuthenticated)
+            {
+                return RedirectToLocal(returnUrl);
+            }
+
+            var encryptionToken = "abc";
+
+            return Redirect(ConfigurationManager.AppSettings["AuthProviderSite"] + "/Login?encryptionToken=" + encryptionToken + "&returnUrl=" + Url.Action("LoginWithToken", "Account", null, Request.Url.Scheme));
+        }
+
+        [AllowAnonymous]
+        public ActionResult LoginWithToken(string token)
+        {
+            SignInUser(true, token);
+
+            return RedirectToAction("Index", "Home");
+        }
         //
         // GET: /Account/Login
 
@@ -79,6 +103,7 @@ namespace SSOApp.Controllers
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
+
 
         //
         // POST: /Account/Login
