@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using System.Web.Security;
 
 namespace SSOApp.Service
 {
@@ -50,6 +51,39 @@ namespace SSOApp.Service
             memoryStream.Close();
             cryptoStream.Close();
             return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+        }
+
+        public static string GenerateRandomKey()
+        {
+            var cryptoProvider = new RNGCryptoServiceProvider();
+            var randomBytes = new byte[keysize];
+
+            cryptoProvider.GetBytes(randomBytes);
+
+            return Convert.ToBase64String(randomBytes);
+        }
+
+        public static HttpCookie CreateFormsAuthenticationCookie(string username, int timeout, bool isPersistent)
+        {
+            string userData = string.Empty;
+
+            var ticket = new FormsAuthenticationTicket(
+              1,                                     // ticket version
+              username,                              // authenticated username
+              DateTime.Now,                          // issueDate
+              DateTime.Now.AddMinutes(timeout),           // expiryDate
+              isPersistent,                          // true to persist across browser sessions
+              userData,                              // can be used to store additional user data
+              FormsAuthentication.FormsCookiePath);  // the path for the cookie
+
+            // Encrypt the ticket using the machine key
+            string encryptedTicket = FormsAuthentication.Encrypt(ticket);
+
+            // Add the cookie to the request to save it
+            var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
+            cookie.HttpOnly = true;
+
+            return cookie;
         }
     }
 }

@@ -1,46 +1,58 @@
-﻿@{
-    ViewBag.Title = "Home Page";
-}
-@section featured {
-    <section class="featured">
-        <div class="content-wrapper">
-            <hgroup class="title">
-                <h1>@ViewBag.Title.</h1>
-                <h2>@ViewBag.Message</h2>
-            </hgroup>
-            <p>
-                To learn more about ASP.NET MVC visit
-                <a href="http://asp.net/mvc" title="ASP.NET MVC Website">http://asp.net/mvc</a>.
-                The page features <mark>videos, tutorials, and samples</mark> to help you get the most from ASP.NET MVC.
-                If you have any questions about ASP.NET MVC visit
-                <a href="http://forums.asp.net/1146.aspx/1?MVC" title="ASP.NET MVC Forum">our forums</a>.
-            </p>
-        </div>
-    </section>
-}
-<h3>We suggest the following:</h3>
-<ol class="round">
-    <li class="one">
-        <h5>Getting Started</h5>
-        ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-        enables a clean separation of concerns and that gives you full control over markup
-        for enjoyable, agile development. ASP.NET MVC includes many features that enable
-        fast, TDD-friendly development for creating sophisticated applications that use
-        the latest web standards.
-        <a href="http://go.microsoft.com/fwlink/?LinkId=245151">Learn more…</a>
-    </li>
+﻿<div class="col-lg-6 col-sm-10">
+    <h1>Single Sign On</h1>
+    <p>Here is a demo site we have created to explain and show different types of techniques for Single Sign-On. All code is available for your perusal on <a href="https://github.com/sbarski/ssoapp">github</a>.</p>
+    <p>Click on the links below to explore the various types of techniques we employ in this demo.</p>
+    <blockquote>
+        <p>We are only interested in showing how a user can sign-in to multiple sites on different domains in one go. So here we focus on multi-site authentication (and not authorization).</p> 
+    </blockquote>
 
-    <li class="two">
-        <h5>Add NuGet packages and jump-start your coding</h5>
-        NuGet makes it easy to install and update free libraries and tools.
-        <a href="http://go.microsoft.com/fwlink/?LinkId=245153">Learn more…</a>
-    </li>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <p>You are currently logged in as: <a href="/Account/Manage">@User.Identity.Name</a>. Your authentication type is: @User.Identity.AuthenticationType</p>
+    }
+    else
+    {
+        <p>You are currently not logged in. You can <a href="/Account/Login">login</a> using credentials <span class="text-info alert-info">kiandra/password</span> or you may <a href="/Account/Register">register</a> a new account.</p>
+    }
 
-    <li class="three">
-        <h5>Find Web Hosting</h5>
-        You can easily find a web hosting company that offers the right mix of features
-        and price for your applications.
-        <a href="http://go.microsoft.com/fwlink/?LinkId=245157">Learn more…</a>
-    </li>
-</ol>
+    <hr/>
+    <h3>How does the demo work?</h3>
+    <p>There are three sites on different domains that are used for this demo.</p>
+    <p>Site A at <a href="http://ssoapp.azurewebsites.net/">http://ssoapp.azurewebsites.net/</a></p>
+    <p>Site B at <a href="http://ssoapp.apphb.com/">http://ssoapp.apphb.com/</a></p>
+    <p>The Central Authentication Server: <a href="http://ssoapp-auth.azurewebsites.net/">http://ssoapp-auth.azurewebsites.net/</a></p>
+    <p>The Central Authentication Server is only used for the third type of SSO.</p>
+    <p>We have the same user (kiandra) registered on both sites A and B (and with the central authentication server). Providing you enter the correct credentials you will be authenticated across the two sites in one go.</p>
+    <hr/>
+    <h3>How can I try this now?</h3>
+    <dl class="dl-horizontal">
+        <dt>Note</dt>
+        <dd>If you are using Safari on a Mac/iOS then please only use Central Authentication Server approach. The other methods will not work unless you change cookie/storage settings.</dd>
+        <dt>The beginning</dt>
+        <dd>Open <a href="http://ssoapp.azurewebsites.net/">Site A</a> and <a href="http://ssoapp.apphb.com/">Site B</a> in two different tabs in your browser.</dd>
+        <dt>Login</dt>
+        <dd>On Site A login with kiandra/password. Note that you are now authenticated in Site A.</dd>
+        <dt>Like Magic</dt>
+        <dd>Switch over to Site B and refresh the page. You are now authenticated on this site as well.</dd>
+    </dl>
+    <hr />
+    <h3>What are these methods?</h3>
+    <p>We show how to implement SSO in three different ways:</p>
+    <dl class="dl-horizontal">
+        <dt>3rd Party Cookie</dt>
+        <dd>A classic approach that users 3rd party/tracking cookies. Requires a local user database. It is the simplest method that works with all browsers by default except for Safari 7 and Safari on iOS. IE8 and above requires P3P headers to be set on cookies.</dd>
+        <dt>HTML5 + easyXDM</dt>
+        <dd>An approach that requires HTML5 LocalStorage and another server that is accessed via a hidden iFrame. The hidden server is used to store credentialed information. Works on all major browsers except for Safari (again).</dd>
+        <dt>Central Auth</dt>
+        <dd>A ubiquitous approach that redirects the user to login on another site (a Central Authentication Server). Doesn't require a local user database but introduces a dependency on a CAS. Works in all browsers.</dd>
 
+    </dl>
+    <hr />
+    </div>
+<div class="col-lg-6 col-sm-10">
+    <div class="bs-callout bs-callout-danger">
+    <h3>What about OAuth?</h3>
+    <p>OAuth and other claims-based methods are not what we want or needed. OAuth is concerned with authorization (and hence claims) rather than authentication.</p>
+    <p>These things are often related but it's a mistake to conflate them together. We are interested in showing how a user can log-in to multiple web applications by entering their username and password just ones.</p>
+</div>
+</div>

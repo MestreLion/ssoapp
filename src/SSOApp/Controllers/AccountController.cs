@@ -13,90 +13,16 @@ using WebMatrix.WebData;
 using SSOApp.Filters;
 using SSOApp.Models;
 using System.Configuration;
+using System.Net;
 
 namespace SSOApp.Controllers
 {
     [Authorize]
     [InitializeSimpleMembership]
-    //[SSOSignOn]
     public class AccountController : Controller
     {
-        [AllowAnonymous]
-        public void SingleSignOn(string token)
-        {
-            const bool createPersistentCookie = false;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                var user = SSOAuthenticationService.DecryptToken(token);
-
-                SignInUser(createPersistentCookie, user);
-            }
-        }
-
-        private void SignInUser(bool createPersistentCookie, string user)
-        {
-            if (WebSecurity.UserExists(user))
-            {
-                int timeout = createPersistentCookie ? 43200 : 30;
-
-                var cookie = CreateFormsAuthenticationCookie(user, timeout, createPersistentCookie);
-
-                //if (cookie == null) //if we do not support forms authentication we can fallback to the old sso method
-                //{
-                //    cookie = new HttpCookie("sso", token) { Expires = System.DateTime.Now.AddMinutes(timeout) };
-                //}
-
-                HttpContext.Response.Cookies.Add(cookie);
-            }
-        }
-
-        private HttpCookie CreateFormsAuthenticationCookie(string username, int timeout, bool isPersistent)
-        {
-            string userData = string.Empty;
-
-            var ticket = new FormsAuthenticationTicket(
-              1,                                     // ticket version
-              username,                              // authenticated username
-              DateTime.Now,                          // issueDate
-              DateTime.Now.AddMinutes(timeout),           // expiryDate
-              isPersistent,                          // true to persist across browser sessions
-              userData,                              // can be used to store additional user data
-              FormsAuthentication.FormsCookiePath);  // the path for the cookie
-
-            // Encrypt the ticket using the machine key
-            string encryptedTicket = FormsAuthentication.Encrypt(ticket);
-
-            // Add the cookie to the request to save it
-            var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
-            cookie.HttpOnly = true;
-
-            return cookie;
-        }
-
-        [AllowAnonymous]
-        public ActionResult LoginWithCA(string returnUrl)
-        {
-            if (WebSecurity.IsAuthenticated)
-            {
-                return RedirectToLocal(returnUrl);
-            }
-
-            var encryptionToken = "abc";
-
-            return Redirect(ConfigurationManager.AppSettings["AuthProviderSite"] + "/Login?encryptionToken=" + encryptionToken + "&returnUrl=" + Url.Action("LoginWithToken", "Account", null, Request.Url.Scheme));
-        }
-
-        [AllowAnonymous]
-        public ActionResult LoginWithToken(string token)
-        {
-            SignInUser(true, token);
-
-            return RedirectToAction("Index", "Home");
-        }
         //
         // GET: /Account/Login
-
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
@@ -107,7 +33,6 @@ namespace SSOApp.Controllers
 
         //
         // POST: /Account/Login
-
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -115,18 +40,22 @@ namespace SSOApp.Controllers
         {
             if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe)) //simple login
             {
-                if (model.SimpleSSOMethod) //3rd party cookie SSO
+                var isAuthProvider = Convert.ToBoolean(ConfigurationManager.AppSettings["IsAuthProvider"]);
+
+                if (isAuthProvider != true)
                 {
-                    TempData.Add("sso", true);
-                }
-                else //html5 iframe sso
-                {
-                    TempData.Add("sso-auth", true);
+                    if (model.SimpleSSOMethod) //3rd party cookie SSO
+                    {
+                        TempData.Add("sso", true);
+                    }
+                    else //html5 iframe sso
+                    {
+                        TempData.Add("sso-auth", true);
+                    }
                 }
 
                 return RedirectToLocal(returnUrl);
             }
-
 
             // If we got this far, something failed, redisplay form
             ModelState.AddModelError("", "The user name or password provided is incorrect.");
@@ -138,28 +67,17 @@ namespace SSOApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult LocalLogOff()
+        public ActionResult LogOff()
         {
+            TempData.Add("sso-logout", true);
+
             WebSecurity.Logout();
 
-            //expire cookie
-            var c = new HttpCookie("sso") { Expires = DateTime.Now.AddDays(-1) };
-            HttpContext.Response.Cookies.Add(c);
-
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult GlobalLogOff()
-        {
-            WebSecurity.Logout();
-
-            //expire cookie
-            var c = new HttpCookie("sso") { Expires = DateTime.Now.AddDays(-1) };
-            HttpContext.Response.Cookies.Add(c);
-
-            //
+            using (var request = new WebClient())
+            {
+                var uri = new Uri(ConfigurationManager.AppSettings["AuthProviderSite"] + "/ServerCA/Logout?returnUrl=" + Url.Action("LoginWithToken", "Account", null, Request.Url.Scheme));
+                request.DownloadString(uri);
+            }
 
             return RedirectToAction("Index", "Home");
         }

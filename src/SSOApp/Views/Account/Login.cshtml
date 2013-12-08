@@ -1,56 +1,75 @@
 ﻿@model SSOApp.Models.LoginModel
 
-@{
-    ViewBag.Title = "Log in";
-}
-
 <hgroup class="title">
-    <h1>@ViewBag.Title.</h1>
+    <h1>@ViewBag.Title</h1>
 </hgroup>
 
-<section id="loginForm">
-<h2>Use a local account to log in.</h2>
-@using (Html.BeginForm(new { ReturnUrl = ViewBag.ReturnUrl })) {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
+<div class="bs-callout bs-callout-danger">
+    <p>Remember to login with <span class="text-info alert-info">kiandra/password</span> or create your own account (with the same username and password) on <a href="http://ssoapp.azurewebsites.net/">Site A</a>, <a href="http://ssoapp.apphb.net/">Site B</a> and the <a href="http://ssoapp-auth.azurewebsites.net/">Central Authentication Server</a>.</p>
+    </div>
 
-    <fieldset>
-        <legend>Log in Form</legend>
-        <ol>
-            <li>
-                @Html.LabelFor(m => m.UserName)
-                @Html.TextBoxFor(m => m.UserName)
-                @Html.ValidationMessageFor(m => m.UserName)
-            </li>
-            <li>
-                @Html.LabelFor(m => m.Password)
-                @Html.PasswordFor(m => m.Password)
-                @Html.ValidationMessageFor(m => m.Password)
-            </li>
-            <li>
-                @Html.CheckBoxFor(m => m.RememberMe)
-                @Html.LabelFor(m => m.RememberMe, new { @class = "checkbox" })
-            </li>
-            <li>
-                @Html.RadioButtonFor(m => m.SimpleSSOMethod, "true") 3rd Party Cookie
-            </li>
-            <li>
-                @Html.RadioButtonFor(m => m.SimpleSSOMethod, "false") HTML5 Storage + iFrame
-            </li>
-        </ol>
-        <input type="submit" value="Log in" />
-    </fieldset>
-    <p>
-        @Html.ActionLink("Register", "Register") if you don't have an account.
-    </p>
-}
-</section>
+    <section id="loginForm" class="col-md-6">
+        <h2>Local Account Authentication</h2>
+        @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
 
-<section class="social" id="socialLoginForm">
-    <h2>Central Authentication Server</h2>
-    @Html.ActionLink("Login With Central Authentication Server", "LoginWithCA", new { ReturnUrl = ViewBag.ReturnUrl })
-</section>
+            <fieldset>
+                <div class="form-group">
+                    <label class="col-md-3 control-label" for="username">Username</label>
+                    <div class="col-md-6">
+                        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control input-md", required = "" })
+                    </div>
+                </div>
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
+                <div class="form-group">
+                    <label class="col-md-3 control-label" for="passwordinput">Password</label>
+                    <div class="col-md-6">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md", required = "" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-3 control-label" for="checkboxes">Remember Me?</label>
+                    <div class="col-md-6">
+                        <label class="checkbox-inline" for="checkboxes-0">
+                            @Html.CheckBoxFor(m => m.RememberMe)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-3 control-label" for="radios">Auth Method</label>
+                    <div class="col-md-6">
+                        <div class="radio">
+                            @Html.RadioButtonFor(m => m.SimpleSSOMethod, "true") 3rd Party Cookie
+                        </div>
+                        <div class="radio">
+                            @Html.RadioButtonFor(m => m.SimpleSSOMethod, "false") HTML5 LocalStorage + easyXDM
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-3 control-label" for="submit"></label>
+                    <div class="col-md-6">
+                        <button id="submit" name="submit" class="btn btn-primary">Log In</button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <p>
+                @Html.ActionLink("Register", "Register") if you don't have an account.
+            </p>
+        }
+    </section>
+
+    <section class="col-md-6" id="socialLoginForm">
+        <h2>Central Authentication Server</h2>
+        @Html.ActionLink("Log in With Central Authentication Server", "Login", "ClientCA", null, new { ReturnUrl = ViewBag.ReturnUrl })
+    </section>
+
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+    }
