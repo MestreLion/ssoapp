@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "";
+}
+
+@Scripts.Render("~/bundles/easyXDM")
+
+<script type="text/javascript">
+    var socket = new easyXDM.Socket({
+        onMessage: function (msg, origin) {
+            localStorage.clear();
+        }
+    });
+</script>

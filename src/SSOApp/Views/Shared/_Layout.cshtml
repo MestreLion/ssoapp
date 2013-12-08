@@ -2,62 +2,91 @@
 @using SSOApp.Extensions
 
 <!DOCTYPE html>
-<html lang="en">
+<html class="full" lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>@ViewBag.Title - My ASP.NET MVC Application</title>
+        <title>@ViewBag.Title - Single Sign On Demonstration</title>
         <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
         <meta name="viewport" content="width=device-width" />
+        <meta name="description" content="Description of Single Sign On techniques">
+        <meta name="author" content="Peter Sbarski">
         @Styles.Render("~/Content/css")
         @Scripts.Render("~/bundles/modernizr")
         @Scripts.Render("~/bundles/easyXDM")
 
     </head>
     <body>
-        <header>
-            <div class="content-wrapper">
-                <div class="float-left">
-                    <p class="site-title">@Html.ActionLink("your logo here", "Index", "Home")</p>
-                    @if (Html.IsAuthProvider())
-                    {
-                        <p>AUTH PROVIDER</p>
-                        <a href="javascript:;" onClick="sessionStorage && sessionStorage.clear()">Clear Session Storage</a>
-                    }
+        <nav class="navbar navbar-fixed-bottom navbar-inverse" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
                 </div>
-                <div class="float-right">
-                    <section id="login">
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/Home/Index">Home</a></li>
+                        <li><a href="/Home/Cookies">3rd Party Cookie</a></li>
+                        <li><a href="/Home/HTML5">HTML5 LocalStorage + easyXDM</a></li>
+                        <li><a href="/Home/CAS">Central Authentication Server</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav pull-right">
                         @Html.Partial("_LoginPartial")
-                    </section>
-                    <nav>
-                        <ul id="menu">
-                            <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                            <li>@Html.ActionLink("About", "About", "Home")</li>
-                            <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
-                            <li><a href="@Html.OtherSiteUrl()">Click to the other site</a>
-                        </ul>
-                    </nav>
-                </div>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container -->
+        </nav>
+
+
+
+        <div class="container">
+            <div id="body">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="bs-callout bs-callout-warning">
+                        <h4>You are logged in as: <a href="/Account/Manage">@User.Identity.Name</a> </h4>
+                    </div>
+                }
+                @if (Html.IsAuthProvider())
+                {
+                        <div class="bs-callout bs-callout-warning">
+                            <h4>This is the Central Authentication Server</h4>
+                        </div>
+                }
+                @RenderSection("featured", required: false)
+                <section class="content-wrapper main-content clear-fix">
+                    @RenderBody()
+                </section>
             </div>
-        </header>
-        <div id="body">
-            @RenderSection("featured", required: false)
-            <section class="content-wrapper main-content clear-fix">
-                @RenderBody()
-            </section>
         </div>
-        <footer>
-            <div class="content-wrapper">
-                <div class="float-left">
-                    <p>&copy; @DateTime.Now.Year - My ASP.NET MVC Application</p>
-                </div>
-            </div>
-        </footer>
 
         <!-- Approach 1 -->
-        
-        @if (User.Identity.IsAuthenticated && TempData["sso"] != null && (bool)TempData["sso"])
+
+        @if (TempData["sso-logout"] != null)
         {
-            <img src="@Html.OtherSiteUrl()/Account/SingleSignOn?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
+            <img src="@Html.OtherSiteUrl()/Cookie/LogOff?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
+            
+            <script type="text/javascript">
+                    var socket = new easyXDM.Socket({
+                        remote: "@Html.AuthProviderSite()/XDM/ClearAuth",
+                        onReady: function () {
+                        }
+                    });
+                debugger;
+                    socket.postMessage("remove");
+                </script>
+            
+            TempData.Remove("sso-logout");
+        }
+        
+        @if (User.Identity.IsAuthenticated && TempData["sso"] != null && (bool)TempData["sso"]) //the client performs a request to the other site to capture their authentication cookie
+        {
+            <img src="@Html.OtherSiteUrl()/Cookie/Login?token=@SSOAuthenticationService.EncryptToken(User.Identity.Name)" />
             
             TempData.Remove("sso");
         }
@@ -69,7 +98,7 @@
             
                 <script type="text/javascript">
                     var socket = new easyXDM.Socket({
-                        remote: "@Html.AuthProviderSite()/SaveAuth",
+                        remote: "@Html.AuthProviderSite()/XDM/SaveAuth",
                         onReady: function () {
                         }
                     });
@@ -82,13 +111,13 @@
             {
                 <script type="text/javascript">
                     var socket = new easyXDM.Socket({
-                        remote: "@Html.AuthProviderSite()/GetAuth",
+                        remote: "@Html.AuthProviderSite()/XDM/GetAuth",
                         onMessage: function (msg, origin) {
                             if (msg != null && msg != "null" && msg.length > 0) {
-                                var url = '/Account/SingleSignOn?token=' + msg;
+                                var url = '/XDM/Login?token=' + msg;
                                 
                                 $.ajax({
-                                    type: "GET",
+                                    type: "POST",
                                     url: url,
                                     success: function () {
                                         location.reload();
