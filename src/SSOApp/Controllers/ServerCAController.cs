@@ -36,7 +36,7 @@ namespace SSOApp.Controllers
             {
                 var ticket = FormsAuthentication.Decrypt(authCookie.Value);
 
-                var user = ticket.Name;
+                var user = SSOAuthenticationService.EncryptToken(ticket.Name);
 
                 return Redirect(returnUrl + "?token=" + user + "&createPersistentCookie=true");
             }
