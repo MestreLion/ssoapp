@@ -18,7 +18,7 @@ namespace SSOApp.Controllers
 {
     [Authorize]
     [InitializeSimpleMembership]
-    [SSOSignOn]
+    //[SSOSignOn]
     public class AccountController : Controller
     {
         [AllowAnonymous]
@@ -138,13 +138,28 @@ namespace SSOApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult LogOff()
+        public ActionResult LocalLogOff()
         {
             WebSecurity.Logout();
 
             //expire cookie
             var c = new HttpCookie("sso") { Expires = DateTime.Now.AddDays(-1) };
             HttpContext.Response.Cookies.Add(c);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult GlobalLogOff()
+        {
+            WebSecurity.Logout();
+
+            //expire cookie
+            var c = new HttpCookie("sso") { Expires = DateTime.Now.AddDays(-1) };
+            HttpContext.Response.Cookies.Add(c);
+
+            //
 
             return RedirectToAction("Index", "Home");
         }

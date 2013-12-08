@@ -8,7 +8,7 @@ using SSOApp.Extensions;
 
 namespace SSOApp.Controllers
 {
-    [SSOSignOn]
+    //[SSOSignOn]
     public class HomeController : Controller
     {
         public ActionResult Index()
